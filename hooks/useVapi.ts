@@ -200,7 +200,15 @@ export function useVapi(book: IBook) {
       },
 
       error: (error: Error) => {
-        console.error("Vapi error:", error);
+        // Error objects often log as {} in dev overlays / JSON contexts
+        // because message/stack are non-enumerable. Log explicit fields
+        // plus the raw value so the real content is always visible.
+        console.error("Vapi error:", {
+          message: error?.message,
+          name: error?.name,
+          stack: error?.stack,
+          raw: error,
+        });
         // Don't reset isStoppingRef here - delayed events may still fire
         setStatus("idle");
         setCurrentMessage("");
@@ -222,7 +230,7 @@ export function useVapi(book: IBook) {
         }
 
         // Show user-friendly error message
-        const errorMessage = error.message?.toLowerCase() || "";
+        const errorMessage = error?.message?.toLowerCase() || "";
         if (
           errorMessage.includes("timeout") ||
           errorMessage.includes("silence")
